@@ -1,0 +1,9 @@
+{
+    "summary": "Users can reset their password.",
+    "requirement_types": ["Functional", "Security"],
+    "Testability": {
+        "status": "Partially Testable",
+        "reason": "The password reset process and success criteria are not specified"
+    }
+}
+
