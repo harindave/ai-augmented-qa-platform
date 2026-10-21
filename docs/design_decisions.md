@@ -1,68 +1,62 @@
 # Design decisions
 
-Updated: 14 October 2026.
+Updated: 21 October 2026.
 
-This document distinguishes implemented choices from questions still open for review. Rationales below explain how the current structure supports the project; they are not a claim that every choice has been formally approved.
+These notes explain the current design and the choices still open.
 
-## 1. Define the analysis contract with Pydantic
+## Use Pydantic to check analysis responses
 
-**Status:** Implemented in `app/backend/schemas.py`.
+`RequirementAnalysis` defines the expected structure. I use it to validate both sample files and generated model responses.
 
-`RequirementAnalysis` defines the expected fields, nested objects, and allowed classifications for a structured analysis response. A single contract can be used to check manually written JSON now and model responses later.
+Validation checks structure and allowed values. It does not judge whether the analysis is correct.
 
-**Limit:** Passing validation proves structural compatibility, not factual correctness, useful coverage, or approval.
+## Use fixed classifications
 
-## 2. Use enums for classifications
+Enums keep labels consistent. For example, a risk level must be `Low`, `Medium`, `High`, or `Critical`.
 
-**Status:** Implemented in `app/backend/models.py`.
+If a new label is needed, I will update the contract deliberately rather than accept inconsistent responses.
 
-Requirement types, risk levels, priorities, scenario types, and other classifications use fixed values. This keeps names consistent across responses and gives validation a way to reject unsupported labels.
+## Keep analysis separate from approval
 
-**Tradeoff:** A fixed vocabulary may need revision when a real use case does not fit. New labels should be reviewed and added to the contract deliberately.
+The analysis schema contains suggested findings and tests. Approval, requirement status, and test execution results have separate workflow enums.
 
-## 3. Keep analysis separate from workflow status
+The app still needs to enforce this separation. The current schema ignores extra fields rather than rejecting them.
 
-**Status:** Represented in the current models and schema; application enforcement remains future work.
+## Explain assessments and missing information
 
-Human review, requirement lifecycle, and test execution statuses have separate enums and are absent from `RequirementAnalysis`. Analysis output describes suggested findings and scenarios. Human approval and actual test results must be recorded by the appropriate workflow.
+Risk, testability, and confidence include reasons. Assumptions and clarification questions make missing information visible.
 
-**Limit:** The current Pydantic models allow extra fields by default, so the schema does not yet reject unsolicited workflow fields.
+Scenario outcomes should flag unconfirmed rules instead of inventing required behavior. This is a review convention; the schema does not enforce it.
 
-## 4. Pair assessments with reasons
+## Validate a sample before connecting a model
 
-**Status:** Implemented.
+I completed the sample JSON and validation checks before starting model integration. This established the expected response format and exposed common errors.
 
-Testability, overall risk, and confidence each include a classification and a reason. The explanation helps a reviewer assess the classification and challenge unsupported conclusions.
+Ollama is connected in `scripts/try_ollama.py`; application integration is still pending.
 
-**Limit:** Confidence is qualitative; it is not a calibrated probability. The schema does not check whether a reason supports its classification.
+## Keep validation reusable
 
-## 5. Make uncertainty visible
+The validation code is in `scripts/validate_analysis.py`. I run it as a module from the project root so it can import the application schema.
 
-**Status:** Fields implemented; reference example illustrates their use.
+It accepts a file path through `argparse`, catches `FileNotFoundError` and `ValidationError`, and prints results only on success. Broader file-error handling and failure exit codes are still needed for an automated pipeline.
 
-The contract includes quality flags, assumptions, and clarification questions. These provide places to identify missing information instead of silently treating inferred rules as confirmed requirements.
+## Start with a small local model
 
-Candidate scenarios whose outcomes depend on missing rules should state what needs clarification. This convention is illustrated in the reference JSON but is not enforced by the current schema.
+The prototype uses `qwen2.5:1.5b` on a laptop with about 7 GB usable RAM. Ollama reported CPU execution. This is an initial hardware-conscious choice, not a final quality decision.
 
-## 6. Learn and review JSON before model integration
+The request supplies the Pydantic JSON schema and validates the returned content. System instructions and temperature zero are being evaluated, but they have not prevented reasoning errors. The first output is saved as a baseline rather than treated as approved analysis.
 
-**Status:** Agreed next step.
+## Keep timeout troubleshooting separate from quality review
 
-The owner will write and validate a sample response before connecting Ollama. This makes the response contract and validation errors understandable before generation adds another source of complexity.
+The prototype waits for the complete response with streaming disabled. After a 180-second read timeout, I changed the request to a 10-second connection timeout and a 300-second read timeout. Completion with these settings is not yet confirmed. A longer wait does not make generation faster or improve the answer.
 
-Codex provides guidance and review; the owner implements model integration. Ollama has not been connected.
+## Decisions still open
 
-## Open decisions
+- Reject unknown fields?
+- Reject blank descriptions?
+- Require at least one item in selected lists?
+- Keep scenario quality flags optional?
+- How should the interface show unresolved questions and approval?
+- Is the current model adequate after evaluation, and what model-error handling is needed?
 
-- Should unknown fields be rejected at every level of the response?
-- Should text fields reject blank or whitespace-only values?
-- Which lists, if any, must contain at least one item?
-- Should scenario `quality_flags` remain optional with an empty-list default?
-- How should the application display clarification-dependent scenarios and prevent premature approval?
-- Which model and response-failure handling should be used when integration begins?
-
-Resolve these through small examples and reviewed requirements rather than treating them as already agreed changes.
-
-## Recording a future decision
-
-Record the date, concrete problem, chosen approach, reason, tradeoffs, implementation status, and evidence. Update an existing entry when a decision changes so the document describes the current design.
+I will update these notes as those decisions are made.

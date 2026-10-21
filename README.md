@@ -1,104 +1,87 @@
 # AI-Augmented QA Workforce Platform
 
-An AI-assisted quality engineering platform designed to help QA professionals improve testing efficiency, develop technical skills, and demonstrate measurable software quality.
+A project I am building to help QA professionals analyze requirements, plan tests, and improve their technical skills.
 
-## Vision
+## What works today
 
-Build a practical platform that combines AI-assisted testing, human review, guided learning, and quality analytics.
+- A Streamlit form for entering a software requirement.
+- Basic validation that rejects empty input and returns the cleaned text and character count.
+- A Pydantic schema for checking structured requirement analysis.
+- A sample JSON response with three test scenarios.
+- A validation script that accepts a JSON file path and handles missing files and validation errors.
+- A separate Ollama script that generates analysis and validates its structure.
+- Automated tests for the analyzer, enums, and schema.
 
-The goal is to augment QA engineers, not replace them.
+Local generation works in a standalone script. It is not connected to the Streamlit app yet. Model response quality and full-analysis timeouts are still under investigation.
 
-## Core Modules
+## First-time setup
 
-### 1. QA AI Playbook
-- Analyze software requirements and acceptance criteria.
-- Generate draft test scenarios and test cases.
-- Identify potential edge cases and risks.
-- Support human review and approval of AI-generated outputs.
+I use Python 3.13 (currently tested with 3.13.15). With Python 3.13 installed, run these commands from the project folder in PowerShell:
 
-### 2. QA Skills Lab
-- Provide practical exercises in API testing, SQL, Python, automation, and AI-assisted testing.
-- Track learning progress and demonstrated skills.
-- Encourage continuous professional development.
+```powershell
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
 
-### 3. QA Evaluation Dashboard
-- Visualize test coverage, defect trends, and testing outcomes.
-- Track AI-assisted testing quality and review results.
-- Support team-level learning and continuous improvement.
+No environment activation is needed for the commands below because they use the virtual environment's Python directly. Ollama is installed separately for the local model prototype.
 
-## Technology Stack
-
-- Python
-- Streamlit
-- Ollama for local AI inference
-- SQLite
-- Pandas and SQL
-- pytest
-- Postman
-- Selenium
-- GitHub Actions
-
-Python, Streamlit, Pydantic, and pytest are used in the current prototype. Ollama integration, persistence, learning modules, dashboards, and continuous integration are planned work. The remaining tools will be introduced incrementally.
-
-## Development Principles
-
-- Human review for AI-generated testing outputs.
-- Privacy-conscious development using synthetic sample data.
-- Automated testing and measurable quality checks.
-- Small, understandable changes with version control.
-- Clear documentation of limitations and design decisions.
-
-## Project Status
-
-**Phase 1 — Requirement Analyzer prototype (in progress)**
-
-Completed:
-- Repository foundation and local Python environment.
-- Streamlit requirement input interface.
-- Basic requirement validation: reject empty input, trim whitespace, and return a character count.
-- Domain enums for analysis classifications and separate human/system workflow statuses.
-- Pydantic models defining a structured requirement analysis response.
-- Automated tests for the basic analyzer, enums, and schema.
-
-The current app performs basic text validation only. It does not yet generate AI analysis. The schema defines the intended output structure; it is not connected to the analyzer or a model.
-
-Next: learn and review JSON, write a sample response, and validate it against the schema. Connect Ollama after that exercise is understood and reviewed. The existing [sample JSON guide](docs/analysis_json.md) is an optional reference authored by Codex, not a completed learner exercise.
-
-## Working Approach
-
-The project owner writes the application code. Codex guides the work by explaining concepts, suggesting small steps, and reviewing the owner's implementation. Codex edits code only when explicitly asked. Documentation updates can be requested separately.
-
-## Run Locally
-
-From the project root in PowerShell, with the virtual environment and dependencies installed:
+## Run the app
 
 ```powershell
 .\.venv\Scripts\python.exe -m streamlit run app/main.py
 ```
 
-Run the tests:
+## Check the sample JSON
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.validate_analysis docs/examples/my_requirement_analysis.json
+```
+
+A valid sample prints its summary and the number of test scenarios. Invalid data prints validation details.
+
+## Try the local model
+
+With Ollama installed and running, download the model once:
+
+```powershell
+ollama pull qwen2.5:1.5b
+```
+
+Then run the prototype:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.try_ollama
+```
+
+The script currently analyzes a fixed password-reset requirement. It waits for the complete response before printing it. On my laptop, Ollama uses the CPU; full analysis has exceeded the earlier 180-second read timeout. The current settings allow 10 seconds to connect and 300 seconds to wait for response data, but a successful run with those settings has not yet been confirmed.
+
+Generated analysis is a draft for review. Passing validation does not mean its reasoning is correct.
+
+## Run the tests
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-`.env.example` records planned model configuration. The current app does not load it or call Ollama.
+## Where the project is going
 
-See [project progress and next steps](docs/project_progress.md) for the current handoff.
+1. **QA AI Playbook:** analyze requirements and suggest tests, risks, and clarification questions.
+2. **QA Skills Lab:** practical exercises in API testing, SQL, Python, and automation.
+3. **QA Evaluation Dashboard:** show test coverage, defect trends, and review results.
 
-The [learning log](docs/learning_log.md) tracks exercises and understanding, and [design decisions](docs/design_decisions.md) records implemented choices and open questions.
+I am currently building the Requirement Analyzer. Next, I will investigate generation timeouts and assess output quality before connecting the model to the interface.
 
-## Roadmap
+## How I work
 
-1. Establish the project foundation — completed.
-2. Build the first working QA AI Playbook prototype — basic interface and analysis schema completed; JSON learning and model integration next.
-3. Add human review and strengthen output validation — schema validation exists; review workflow and model-response handling remain planned.
-4. Build the QA Skills Lab.
-5. Develop the QA Evaluation Dashboard.
-6. Connect the modules through a controlled AI workflow.
-7. Expand automated tests and add continuous integration — initial tests already exist.
-8. Publish a documented, reproducible demonstration.
+I develop and test the project, using AI to help explain concepts, troubleshoot issues, and review changes. I make the implementation decisions and check the results.
 
-## Disclaimer
+The current stack is Python, Streamlit, Pydantic, requests, Ollama, and pytest. AI-generated testing suggestions require human review.
 
-This is an educational and portfolio project. Initial examples will use synthetic data and will not contain confidential company or client information.
+## Project notes
+
+- [Progress and next steps](docs/project_progress.md)
+- [JSON format and validation](docs/analysis_json.md)
+- [Design decisions](docs/design_decisions.md)
+- [Learning log](docs/learning_log.md)
+
+This is an educational and portfolio project using synthetic examples. Do not add confidential company or client data.

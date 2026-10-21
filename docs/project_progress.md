@@ -1,43 +1,56 @@
-# Project progress and next steps
+# Project progress
 
-Updated: 14 October 2026.
+Updated: 21 October 2026.
 
-## Current implementation
+## Completed
 
-The project is in Phase 1: building the Requirement Analyzer prototype.
+- Basic requirement analyzer and Streamlit interface.
+- Enums and Pydantic models for structured analysis.
+- Sample JSON response with three scenarios.
+- Validation script with a required file-path argument, missing-file handling, and handled Pydantic errors.
+- Local Ollama connection and schema-validated generation in a separate script.
+- Saved first model output for comparison.
+- Tests for the analyzer, enums, and schema.
 
-- `app/main.py`: Streamlit input form and basic analysis result display.
-- `app/backend/qa_engine.py`: trims requirement text, rejects empty input, and returns the cleaned text and character count.
-- `app/backend/models.py`: enums for requirement types, risks, priorities, test classifications, and separate workflow statuses.
-- `app/backend/schemas.py`: Pydantic response models for requirement analysis, risks, testability, confidence, and candidate test scenarios.
-- `tests/`: automated checks for the basic analyzer, enums, and response schema.
+The app currently checks requirement text. It does not call a model or display structured analysis.
 
-Ollama is not connected. Structured analysis is not displayed in the app yet. Persistence, human review controls, Skills Lab, and the Evaluation Dashboard remain planned.
+## Checks completed
 
-## Verification
+- The test run on 14 October passed all 26 tests, with a pytest cache permission warning.
+- The sample JSON passed schema validation and printed the summary and `3`.
+- I tested an invalid risk level, checked the handled error, and restored the valid value.
+- I tested a missing file and restored the correct path.
+- The configurable validator successfully checked both manual samples: three and five scenarios.
+- Python successfully requested model listings, text, JSON, and full structured analysis from Ollama.
 
-The latest test run on 14 October 2026 passed all 26 tests. It reported a permission warning when writing the pytest cache; the tests themselves passed.
+## Next tasks
 
-The manually authored password-reset JSON reference was separately validated against `RequirementAnalysis` and contains five candidate scenarios. It is illustrative and has not been approved as a product specification.
+- Investigate the full-analysis timeout and check runtime behavior.
+- Compare model outputs for unsupported assumptions, contradictions, and instruction following.
+- Add model calls and structured results to the interface after the prototype is ready.
+- Add human review controls before treating generated results as approved.
 
-## Agreed working roles
+The Skills Lab, dashboard, and data storage are later work.
 
-The project owner implements the application and writes the learning exercises. Codex explains concepts, proposes manageable steps, and reviews the owner's work. Codex changes application code only on explicit request. 
+## Known limitations
 
-## Next session
+The validator accepts a file path and handles missing files, but not every file-reading error. Handled failures still return exit status zero, so it is not ready as an automated pass/fail gate. Run it from the project root for application imports; relative input paths are resolved from the working directory.
 
-1. Explain the relationship between JSON data and the Pydantic schema.
-2. Have the owner write a small JSON response, then build it up to the full analysis structure.
-3. Review field names, enum values, nested objects, lists, assumptions, and clarification questions.
-4. Validate the owner's JSON against the existing schema and discuss validation errors.
-5. After the JSON exercise, guide the owner through connecting Ollama and handling validated responses and failures.
+The model script uses `qwen2.5:1.5b`, temperature zero, a JSON schema, and a non-streaming response. It still uses a fixed requirement and does not catch request or validation errors. Schema-valid outputs have contained invented behavior, contradictory assessments, and more scenarios than requested. Temperature zero did not resolve these issues.
 
-The next task is JSON learning, not model integration.
+Ollama reported 100% CPU use on my laptop. A full request exceeded the 180-second read timeout. The script now uses `timeout=(10, 300)`; successful completion with that setting is not yet confirmed. An intermediate zero-second connection timeout was invalid and has been corrected.
 
-## Reference documents
+## Key files
 
-- [Project overview](../README.md)
-- [JSON field guide](analysis_json.md)
-- [Learning log](learning_log.md)
-- [Design decisions](design_decisions.md)
-- [Codex-authored reference JSON](examples/password_reset_analysis.json)
+| File | Purpose |
+|---|---|
+| `app/main.py` | Streamlit interface |
+| `app/backend/qa_engine.py` | Basic requirement checks |
+| `app/backend/models.py` | Allowed classifications |
+| `app/backend/schemas.py` | Analysis structure |
+| `scripts/validate_analysis.py` | Sample validation |
+| `scripts/try_ollama.py` | Local generation prototype |
+| `docs/examples/first_model_analysis.json` | First generated baseline, retained with its quality issues |
+| `docs/examples/my_requirement_analysis.json` | Three-scenario sample |
+
+See the [README](../README.md) for run commands.

@@ -103,7 +103,7 @@ def test_invalid_scenario_priority_is_rejected():
 
 
 def test_invalid_requirement_type_is_rejected():
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as error:
         RequirementAnalysis(
             summary="Users can reset their password.",
             requirement_types=["Magic Requirement"],
@@ -111,8 +111,10 @@ def test_invalid_requirement_type_is_rejected():
                 status=TestabilityStatus.TESTABLE,
                 reason="The requirement can be tested.",
             ),
-            risk_level=RiskLevel.MEDIUM,
-            risk_reason="Password reset affects account access.",
+            overall_risk=RiskAssessment(
+                level=RiskLevel.MEDIUM,
+                reason="Password reset affects account access.",
+            ),
             risks=[],
             quality_flags=[],
             edge_cases=[],
@@ -125,6 +127,11 @@ def test_invalid_requirement_type_is_rejected():
                 reason="The requirement is understandable.",
             ),
         )
+
+    errors = error.value.errors()
+    assert len(errors) == 1
+    assert errors[0]["loc"] == ("requirement_types", 0)
+    assert errors[0]["type"] == "enum"
 
 
 def test_missing_risk_description_is_rejected():

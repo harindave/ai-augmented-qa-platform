@@ -1,52 +1,68 @@
 # Learning log
 
-This log records the project owner's learning and implementation work. Codex can maintain the document, but understanding and completed exercises should be recorded only when confirmed by the owner or demonstrated in reviewed work.
+I use this log to record development work, concepts practiced, and questions to revisit. AI supports explanations, troubleshooting, and review.
 
-## 14 October 2026 — Preparing for JSON
+## 14 October 2026 - Starting the JSON work
 
-### Current starting point
+The basic analyzer, interface, enums, schema, and initial tests were in place.
 
-The repository contains a basic requirement analyzer, a Streamlit interface, domain enums, Pydantic analysis models, and 26 passing tests. These are project milestones; this entry does not attribute their authorship or imply mastery of each topic.
+My next task was to prepare a sample analysis response and understand how JSON data maps to the Pydantic schema.
 
-### Agreed learning approach
+## 19 October 2026 - JSON and validation completed
 
-The owner writes the application code and learning exercises. Codex explains concepts, suggests small steps, and reviews the work. Code edits by Codex require an explicit request; documentation maintenance is authorized.
+### Work completed
 
-### Next learning objective
+- Built the three-scenario sample response.
+- Corrected field names, commas, nested objects, and lists.
+- Reviewed assumptions and outcomes that depended on missing business rules.
+- Checked JSON syntax and validated the sample against `RequirementAnalysis`.
+- Moved the validation code into a reusable script.
+- Fixed the import issue by running the script as a module.
+- Added `try` / `except` / `else` to handle validation errors.
+- Corrected indentation so success output only runs after valid input.
 
-Understand how a JSON response represents data and how the existing Pydantic schema checks its structure and allowed values.
+### Key takeaways
 
-### Planned exercise
+- Valid JSON can still fail the project schema.
+- Field names and enum values must match exactly.
+- Imports bring the required classes into the script.
+- Failed validation does not create the `analysis` object.
+- Schema checks cannot confirm business rules or approve results.
 
-1. Write a small JSON object containing `summary` and `requirement_types`.
-2. Add the remaining required fields, including nested assessment objects and lists of scenarios.
-3. Validate the response against `RequirementAnalysis`.
-4. Read validation errors and correct the response.
+### Checks completed
 
-### Progress to confirm
+The valid sample printed its summary and `3`. I also tested `Extreme` as an invalid risk level, checked that the error was handled, and restored `High`.
 
-- JSON syntax and the relationship between JSON and Pydantic have not yet been reviewed together.
-- The owner's JSON exercise has not yet been completed or reviewed.
-- The existing password-reset JSON was authored by Codex as a reference.
-- Ollama integration comes after the JSON exercise.
+### Next steps
 
-### Questions for the exercise
+I continued with missing-file handling, command-line input, and local model experiments, recorded below.
 
-- When should a field contain an object rather than a list?
-- Why must enum values match the schema exactly?
-- What does schema validation check, and what still needs human review?
-- How should missing business rules be reflected in assumptions and clarification questions?
+## 20-21 October 2026 - Local model prototype
 
-## Template for future entries
+### Work completed
 
-### Date and topic
+- Added missing-file handling and kept file reading and validation inside one `try` block.
+- Added a required file-path argument with `argparse` and checked both manual JSON samples.
+- Installed Ollama and downloaded `qwen2.5:1.5b`.
+- Connected Python to Ollama using `requests`.
+- Progressed from model listing to text, JSON, and schema-validated analysis.
+- Saved the first generated analysis as a baseline.
+- Compared fresh conversations, system instructions, and temperature zero.
 
-### What I implemented
+### What I found
 
-### What I can explain in my own words
+The model can return valid structured data while inventing business rules or contradicting its own assessments. Clearer instructions helped in some runs but did not make the output reliable. Human review remains necessary.
 
-### Evidence or reviewed exercise
+Ollama reported 100% CPU execution. Full analysis exceeded a 180-second read timeout. I increased it to `timeout=(10, 300)` for diagnosis and corrected an accidental zero connection timeout. A completed run with the corrected setting is still unconfirmed.
 
-### Questions still open
+### Next steps
 
-### Next small step
+Investigate generation time and output quality before connecting the prototype to Streamlit. The model script still needs handled connection, timeout, and invalid-response errors. The validator still needs failure exit codes before automated pipeline use.
+
+## Future entry format
+
+- Date and task
+- What I changed
+- What I checked
+- What I learned
+- Questions and next steps
